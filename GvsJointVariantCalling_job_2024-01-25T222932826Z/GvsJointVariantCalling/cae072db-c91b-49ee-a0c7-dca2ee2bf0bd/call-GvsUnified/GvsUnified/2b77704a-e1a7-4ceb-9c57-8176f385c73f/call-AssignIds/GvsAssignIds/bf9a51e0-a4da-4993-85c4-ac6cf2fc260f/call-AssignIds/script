@@ -1,0 +1,90 @@
+#!/bin/bash
+
+cd /cromwell_root
+tmpDir=$(mkdir -p "/cromwell_root/tmp.0085ba64" && echo "/cromwell_root/tmp.0085ba64")
+chmod 777 "$tmpDir"
+export _JAVA_OPTIONS=-Djava.io.tmpdir="$tmpDir"
+export TMPDIR="$tmpDir"
+export HOME="$HOME"
+(
+cd /cromwell_root
+
+)
+outbf9a51e0="${tmpDir}/out.$$" errbf9a51e0="${tmpDir}/err.$$"
+mkfifo "$outbf9a51e0" "$errbf9a51e0"
+trap 'rm "$outbf9a51e0" "$errbf9a51e0"' EXIT
+touch '/cromwell_root/stdout' '/cromwell_root/stderr'
+tee '/cromwell_root/stdout' < "$outbf9a51e0" &
+tee '/cromwell_root/stderr' < "$errbf9a51e0" >&2 &
+(
+cd /cromwell_root
+
+
+set -e
+set -x
+
+# make sure that sample names were actually passed, fail if empty
+num_samples=1
+if [ $num_samples -eq 0 ]; then
+  echo "No sample names passed. Exiting"
+  exit 1
+fi
+
+echo "project_id = terra-cold-pecan-4945" > ~/.bigqueryrc
+
+# Check that lock table has not been created yet
+set +e
+bq --project_id=terra-cold-pecan-4945 show gvs_1.sample_id_assignment_lock > /dev/null
+BQ_SHOW_RC=$?
+set -e
+if [ $BQ_SHOW_RC -eq 0 ]; then
+  echo "lock table already exists. Exiting"
+  exit 1
+fi
+
+# create the lock table
+bq --project_id=terra-cold-pecan-4945 mk gvs_1.sample_id_assignment_lock "sample_name:STRING"
+
+NAMES_FILE=/cromwell_root/workflows-bucket-terra-cold-pecan-4945/GvsJointVariantCalling_job_2024-01-25T222932826Z/GvsJointVariantCalling/cae072db-c91b-49ee-a0c7-dca2ee2bf0bd/call-GvsUnified/GvsUnified/2b77704a-e1a7-4ceb-9c57-8176f385c73f/call-AssignIds/GvsAssignIds/bf9a51e0-a4da-4993-85c4-ac6cf2fc260f/call-AssignIds/write_lines_23d1c49a99cd866838bb174f1dcf8531.tmp
+
+# first load name into the lock table - will check for dupes when adding to sample_info table
+bq load --project_id=terra-cold-pecan-4945 gvs_1.sample_id_assignment_lock $NAMES_FILE "sample_name:STRING"
+
+# add sample_name to sample_info_table
+bq --project_id=terra-cold-pecan-4945 query --use_legacy_sql=false --label service:gvs --label team:variants --label managedby:assign_ids \
+  'INSERT into `gvs_1.sample_info` (sample_name, is_control) select sample_name, false from `gvs_1.sample_id_assignment_lock` m where m.sample_name not in (SELECT sample_name FROM `gvs_1.sample_info`)'
+
+# get the current maximum id, or 0 if there are none
+bq --project_id=terra-cold-pecan-4945 query --format=csv --use_legacy_sql=false --label service:gvs --label team:variants --label managedby:assign_ids 'SELECT IFNULL(MAX(sample_id),0) FROM `gvs_1.sample_info`' > maxid
+offset=$(tail -1 maxid)
+
+# perform actual id assignment
+bq --project_id=terra-cold-pecan-4945 query --format=csv --use_legacy_sql=false --label service:gvs --label team:variants --label managedby:assign_ids --parameter=offset:INTEGER:$offset \
+  'UPDATE `gvs_1.sample_info` m SET m.sample_id = id_assign.id FROM (SELECT sample_name, @offset + ROW_NUMBER() OVER(order by sample_name) as id FROM `gvs_1.sample_info` WHERE sample_id IS NULL) id_assign WHERE m.sample_name = id_assign.sample_name;'
+
+# retrieve the list of assigned ids and samples to update the datamodel
+echo "entity:sample_id,gvs_id" > update.tsv
+bq --project_id=terra-cold-pecan-4945 query --format=csv --use_legacy_sql=false --label service:gvs --label team:variants --label managedby:assign_ids -n $num_samples --parameter=offset:INTEGER:$offset \
+  'SELECT sample_name, sample_id from `gvs_1.sample_info` WHERE sample_id >= @offset' > update.tsv
+cat update.tsv | sed -e 's/sample_id/gvs_id/' -e 's/sample_name/entity:sample_id/' -e 's/,/\t/g' > gvs_ids.tsv
+
+# get the max id to create tables for
+max_sample_id=$(cat update.tsv | cut -d, -f2 | sort -r -n | head -1)
+python3 -c "from math import ceil; print(ceil($max_sample_id/4000))" > max_table_id
+
+# remove the lock table
+bq --project_id=terra-cold-pecan-4945 rm -f -t gvs_1.sample_id_assignment_lock
+)  > "$outbf9a51e0" 2> "$errbf9a51e0"
+echo $? > /cromwell_root/rc.tmp
+(
+# add a .file in every empty directory to facilitate directory delocalization on the cloud
+cd /cromwell_root
+find . -type d -exec sh -c '[ -z "$(ls -A '"'"'{}'"'"')" ] && touch '"'"'{}'"'"'/.file' \;
+)
+(
+cd /cromwell_root
+sync
+
+
+)
+mv /cromwell_root/rc.tmp /cromwell_root/rc

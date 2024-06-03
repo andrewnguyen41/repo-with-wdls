@@ -1,0 +1,17 @@
++ set -e
++ echo 'project_id = terra-cold-pecan-4945'
+++ seq 1 1
++ for TABLE_ID in $(seq 1 1)
++ PARTITION_STRING=
++ CLUSTERING_STRING=
++ '[' false == true ']'
++ '[' false = true ']'
++ TABLE=gvs_1.sample_info
++ set +e
++ bq show --project_id terra-cold-pecan-4945 gvs_1.sample_info
++ BQ_SHOW_RC=2
++ set -e
++ '[' 2 -ne 0 ']'
++ echo 'making table gvs_1.sample_info'
++ echo '[{"name": "sample_name","type": "STRING","mode": "REQUIRED"},{"name": "sample_id","type": "INTEGER","mode": "NULLABLE"},{"name":"is_loaded","type":"BOOLEAN","mode":"NULLABLE"},{"name":"is_control","type":"BOOLEAN","mode":"REQUIRED"},{"name":"withdrawn","type":"TIMESTAMP","mode":"NULLABLE"}]'
++ bq mk --project_id=terra-cold-pecan-4945 gvs_1.sample_info schema.json

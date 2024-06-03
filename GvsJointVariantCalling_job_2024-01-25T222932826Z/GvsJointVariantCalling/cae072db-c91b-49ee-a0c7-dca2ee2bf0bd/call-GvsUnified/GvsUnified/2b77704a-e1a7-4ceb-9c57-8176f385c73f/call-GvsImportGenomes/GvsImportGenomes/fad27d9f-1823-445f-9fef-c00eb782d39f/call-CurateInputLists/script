@@ -1,0 +1,43 @@
+#!/bin/bash
+
+cd /cromwell_root
+tmpDir=$(mkdir -p "/cromwell_root/tmp.8ae72c4a" && echo "/cromwell_root/tmp.8ae72c4a")
+chmod 777 "$tmpDir"
+export _JAVA_OPTIONS=-Djava.io.tmpdir="$tmpDir"
+export TMPDIR="$tmpDir"
+export HOME="$HOME"
+(
+cd /cromwell_root
+
+)
+outfad27d9f="${tmpDir}/out.$$" errfad27d9f="${tmpDir}/err.$$"
+mkfifo "$outfad27d9f" "$errfad27d9f"
+trap 'rm "$outfad27d9f" "$errfad27d9f"' EXIT
+touch '/cromwell_root/stdout' '/cromwell_root/stderr'
+tee '/cromwell_root/stdout' < "$outfad27d9f" &
+tee '/cromwell_root/stderr' < "$errfad27d9f" >&2 &
+(
+cd /cromwell_root
+
+
+set -ex
+
+python3 /app/curate_input_array_files.py --sample_map_to_be_loaded_file_name /cromwell_root/workflows-bucket-terra-cold-pecan-4945/GvsJointVariantCalling_job_2024-01-25T222932826Z/GvsJointVariantCalling/cae072db-c91b-49ee-a0c7-dca2ee2bf0bd/call-GvsUnified/GvsUnified/2b77704a-e1a7-4ceb-9c57-8176f385c73f/call-GvsImportGenomes/GvsImportGenomes/fad27d9f-1823-445f-9fef-c00eb782d39f/call-GetUningestedSampleIds/sample_map.csv \
+                                         --sample_name_list_file_name /cromwell_root/workflows-bucket-terra-cold-pecan-4945/GvsJointVariantCalling_job_2024-01-25T222932826Z/GvsJointVariantCalling/cae072db-c91b-49ee-a0c7-dca2ee2bf0bd/call-GvsUnified/GvsUnified/2b77704a-e1a7-4ceb-9c57-8176f385c73f/call-GvsImportGenomes/GvsImportGenomes/fad27d9f-1823-445f-9fef-c00eb782d39f/call-CurateInputLists/write_lines_23d1c49a99cd866838bb174f1dcf8531.tmp \
+                                         --vcf_list_file_name /cromwell_root/workflows-bucket-terra-cold-pecan-4945/GvsJointVariantCalling_job_2024-01-25T222932826Z/GvsJointVariantCalling/cae072db-c91b-49ee-a0c7-dca2ee2bf0bd/call-GvsUnified/GvsUnified/2b77704a-e1a7-4ceb-9c57-8176f385c73f/call-GvsImportGenomes/GvsImportGenomes/fad27d9f-1823-445f-9fef-c00eb782d39f/call-CurateInputLists/write_lines_01ef5f9e427d3dcf23f1574a7cebe678.tmp \
+                                         --vcf_index_list_file_name  /cromwell_root/workflows-bucket-terra-cold-pecan-4945/GvsJointVariantCalling_job_2024-01-25T222932826Z/GvsJointVariantCalling/cae072db-c91b-49ee-a0c7-dca2ee2bf0bd/call-GvsUnified/GvsUnified/2b77704a-e1a7-4ceb-9c57-8176f385c73f/call-GvsImportGenomes/GvsImportGenomes/fad27d9f-1823-445f-9fef-c00eb782d39f/call-CurateInputLists/write_lines_3c908b8459c6b57437c1b0f020cab30a.tmp \
+                                         --output_files True
+)  > "$outfad27d9f" 2> "$errfad27d9f"
+echo $? > /cromwell_root/rc.tmp
+(
+# add a .file in every empty directory to facilitate directory delocalization on the cloud
+cd /cromwell_root
+find . -type d -exec sh -c '[ -z "$(ls -A '"'"'{}'"'"')" ] && touch '"'"'{}'"'"'/.file' \;
+)
+(
+cd /cromwell_root
+sync
+
+
+)
+mv /cromwell_root/rc.tmp /cromwell_root/rc

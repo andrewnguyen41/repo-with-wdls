@@ -1,0 +1,92 @@
+#!/bin/bash
+
+cd /cromwell_root
+tmpDir=$(mkdir -p "/cromwell_root/tmp.26d49a30" && echo "/cromwell_root/tmp.26d49a30")
+chmod 777 "$tmpDir"
+export _JAVA_OPTIONS=-Djava.io.tmpdir="$tmpDir"
+export TMPDIR="$tmpDir"
+export HOME="$HOME"
+(
+cd /cromwell_root
+
+)
+outfad27d9f="${tmpDir}/out.$$" errfad27d9f="${tmpDir}/err.$$"
+mkfifo "$outfad27d9f" "$errfad27d9f"
+trap 'rm "$outfad27d9f" "$errfad27d9f"' EXIT
+touch '/cromwell_root/stdout' '/cromwell_root/stderr'
+tee '/cromwell_root/stdout' < "$outfad27d9f" &
+tee '/cromwell_root/stderr' < "$errfad27d9f" >&2 &
+(
+cd /cromwell_root
+
+
+set -o errexit -o nounset -o xtrace -o pipefail
+
+echo "project_id = terra-cold-pecan-4945" > ~/.bigqueryrc
+
+# Create temp table with the sample_names and load external sample names into temp table -- make sure it doesn't exist already
+set +o errexit
+bq show --project_id terra-cold-pecan-4945 gvs_1.sample_names_to_load > /dev/null
+BQ_SHOW_RC=$?
+set -o errexit
+
+# If there is already a table of sample names or something else is wrong, bail.
+if [ $BQ_SHOW_RC -eq 0 ]; then
+  echo "There is already a list of sample names. This may need manual cleanup. Exiting"
+  exit 1
+fi
+
+echo "Creating the external sample name list table gvs_1.sample_names_to_load"
+bq --project_id=terra-cold-pecan-4945 mk gvs_1.sample_names_to_load "sample_name:STRING"
+NAMES_FILE=/cromwell_root/workflows-bucket-terra-cold-pecan-4945/GvsJointVariantCalling_job_2024-01-25T222932826Z/GvsJointVariantCalling/cae072db-c91b-49ee-a0c7-dca2ee2bf0bd/call-GvsUnified/GvsUnified/2b77704a-e1a7-4ceb-9c57-8176f385c73f/call-GvsImportGenomes/GvsImportGenomes/fad27d9f-1823-445f-9fef-c00eb782d39f/call-GetUningestedSampleIds/write_lines_23d1c49a99cd866838bb174f1dcf8531.tmp
+bq load --project_id=terra-cold-pecan-4945 gvs_1.sample_names_to_load $NAMES_FILE "sample_name:STRING"
+
+# Get the current min/max id, or 0 if there are none. Withdrawn samples still have IDs so don't filter them out.
+bq --project_id=terra-cold-pecan-4945 query --format=csv --use_legacy_sql=false --label service:gvs --label team:variants --label managedby:import_genomes '
+
+  SELECT IFNULL(MIN(sample_id),0) as min, IFNULL(MAX(sample_id),0) as max FROM `gvs_1.sample_info`
+    AS samples JOIN `gvs_1.sample_names_to_load` AS temp ON samples.sample_name = temp.sample_name
+
+' > results.csv
+
+# prep for being able to return min table id
+min_sample_id=$(tail -1 results.csv | cut -d, -f1)
+max_sample_id=$(tail -1 results.csv | cut -d, -f2)
+
+# no samples have been loaded or we don't have the right external_sample_names or something else is wrong, bail
+if [ $max_sample_id -eq 0 ]; then
+  echo "Max id is 0. Exiting"
+  exit 1
+fi
+
+python3 -c "from math import ceil; print(ceil($max_sample_id/4000))" > max_sample_id
+python3 -c "from math import ceil; print(ceil($min_sample_id/4000))" > min_sample_id
+
+# get sample map of samples that haven't been loaded yet
+bq --project_id=terra-cold-pecan-4945 query --format=csv --use_legacy_sql=false --label service:gvs --label team:variants --label managedby:import_genomes -n 1 '
+
+  SELECT sample_id, samples.sample_name FROM `gvs_1.sample_info` AS samples JOIN `gvs_1.sample_names_to_load` AS temp ON
+    samples.sample_name = temp.sample_name WHERE
+      samples.sample_id NOT IN (SELECT sample_id FROM `gvs_1.sample_load_status` WHERE status="FINISHED") AND
+      samples.withdrawn is NULL
+
+' > sample_map.csv
+
+cut -d, -f1 sample_map.csv > gvs_ids.csv
+
+## delete the table that was only needed for this ingest
+bq --project_id=terra-cold-pecan-4945 rm -f=true gvs_1.sample_names_to_load
+)  > "$outfad27d9f" 2> "$errfad27d9f"
+echo $? > /cromwell_root/rc.tmp
+(
+# add a .file in every empty directory to facilitate directory delocalization on the cloud
+cd /cromwell_root
+find . -type d -exec sh -c '[ -z "$(ls -A '"'"'{}'"'"')" ] && touch '"'"'{}'"'"'/.file' \;
+)
+(
+cd /cromwell_root
+sync
+
+
+)
+mv /cromwell_root/rc.tmp /cromwell_root/rc

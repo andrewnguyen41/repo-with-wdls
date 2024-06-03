@@ -1,0 +1,29 @@
+2024/01/25 22:39:51 Starting container setup.
+2024/01/25 22:39:52 Done container setup.
+2024/01/25 22:39:55 Starting localization.
+2024/01/25 22:40:13 Localization script execution started...
+2024/01/25 22:40:13 Localizing input gs://workflows-bucket-terra-cold-pecan-4945/GvsJointVariantCalling_job_2024-01-25T222932826Z/GvsJointVariantCalling/cae072db-c91b-49ee-a0c7-dca2ee2bf0bd/call-GvsUnified/GvsUnified/2b77704a-e1a7-4ceb-9c57-8176f385c73f/call-AssignIds/GvsAssignIds/bf9a51e0-a4da-4993-85c4-ac6cf2fc260f/call-CreateCostObservabilityTable/script -> /cromwell_root/script
+2024/01/25 22:40:19 Localization script execution complete.
+2024/01/25 22:40:24 Done localization.
+2024/01/25 22:40:25 Running user action: docker run -v /mnt/local-disk:/cromwell_root --entrypoint=/bin/bash gcr.io/google.com/cloudsdktool/cloud-sdk@sha256:b20cb23b303d3b3ebde15d3b8759beac6d8e9da8b49a1e189b7843130df264e4 /cromwell_root/script
++ echo 'project_id = terra-cold-pecan-4945'
++ TABLE=gvs_1.cost_observability
++ set +o errexit
++ bq show --project_id terra-cold-pecan-4945 gvs_1.cost_observability
++ BQ_SHOW_RC=2
++ set -o errexit
++ '[' 2 -ne 0 ']'
++ PARTITION_STRING='--time_partitioning_field call_start_timestamp --time_partitioning_type DAY'
++ echo 'making table gvs_1.cost_observability'
+making table gvs_1.cost_observability
++ echo '[ { "name": "call_set_identifier", "type": "STRING", "mode": "REQUIRED", "description": "The name by which we refer to the callset" },   { "name": "step", "type": "STRING", "mode": "REQUIRED", "description": "The name of the core GVS workflow to which this belongs" },   { "name": "call", "type": "STRING", "mode": "NULLABLE", "description": "The WDL call to which this belongs" },   { "name": "shard_identifier", "type": "STRING", "mode": "NULLABLE", "description": "A unique identifier for this shard, may or may not be its index" },   { "name": "call_start_timestamp", "type": "TIMESTAMP", "mode": "REQUIRED", "description": "When the call logging this event was started" },   { "name": "event_timestamp", "type": "TIMESTAMP", "mode": "REQUIRED", "description": "When the observability event was logged" },   { "name": "event_key", "type": "STRING", "mode": "REQUIRED", "description": "The type of observability event being logged" },   { "name": "event_bytes", "type": "INTEGER", "mode": "REQUIRED", "description": "Number of bytes reported for this observability event" } ] '
++ bq mk --time_partitioning_field call_start_timestamp --time_partitioning_type DAY --project_id=terra-cold-pecan-4945 gvs_1.cost_observability schema.json
+Table 'terra-cold-pecan-4945:gvs_1.cost_observability' successfully created.
+2024/01/25 22:40:33 Starting delocalization.
+2024/01/25 22:40:34 Delocalization script execution started...
+2024/01/25 22:40:34 Delocalizing output /cromwell_root/memory_retry_rc -> gs://workflows-bucket-terra-cold-pecan-4945/GvsJointVariantCalling_job_2024-01-25T222932826Z/GvsJointVariantCalling/cae072db-c91b-49ee-a0c7-dca2ee2bf0bd/call-GvsUnified/GvsUnified/2b77704a-e1a7-4ceb-9c57-8176f385c73f/call-AssignIds/GvsAssignIds/bf9a51e0-a4da-4993-85c4-ac6cf2fc260f/call-CreateCostObservabilityTable/memory_retry_rc
+2024/01/25 22:40:34 Delocalizing output /cromwell_root/rc -> gs://workflows-bucket-terra-cold-pecan-4945/GvsJointVariantCalling_job_2024-01-25T222932826Z/GvsJointVariantCalling/cae072db-c91b-49ee-a0c7-dca2ee2bf0bd/call-GvsUnified/GvsUnified/2b77704a-e1a7-4ceb-9c57-8176f385c73f/call-AssignIds/GvsAssignIds/bf9a51e0-a4da-4993-85c4-ac6cf2fc260f/call-CreateCostObservabilityTable/rc
+2024/01/25 22:40:36 Delocalizing output /cromwell_root/stdout -> gs://workflows-bucket-terra-cold-pecan-4945/GvsJointVariantCalling_job_2024-01-25T222932826Z/GvsJointVariantCalling/cae072db-c91b-49ee-a0c7-dca2ee2bf0bd/call-GvsUnified/GvsUnified/2b77704a-e1a7-4ceb-9c57-8176f385c73f/call-AssignIds/GvsAssignIds/bf9a51e0-a4da-4993-85c4-ac6cf2fc260f/call-CreateCostObservabilityTable/stdout
+2024/01/25 22:40:38 Delocalizing output /cromwell_root/stderr -> gs://workflows-bucket-terra-cold-pecan-4945/GvsJointVariantCalling_job_2024-01-25T222932826Z/GvsJointVariantCalling/cae072db-c91b-49ee-a0c7-dca2ee2bf0bd/call-GvsUnified/GvsUnified/2b77704a-e1a7-4ceb-9c57-8176f385c73f/call-AssignIds/GvsAssignIds/bf9a51e0-a4da-4993-85c4-ac6cf2fc260f/call-CreateCostObservabilityTable/stderr
+2024/01/25 22:40:41 Delocalization script execution complete.
+2024/01/25 22:40:42 Done delocalization.
