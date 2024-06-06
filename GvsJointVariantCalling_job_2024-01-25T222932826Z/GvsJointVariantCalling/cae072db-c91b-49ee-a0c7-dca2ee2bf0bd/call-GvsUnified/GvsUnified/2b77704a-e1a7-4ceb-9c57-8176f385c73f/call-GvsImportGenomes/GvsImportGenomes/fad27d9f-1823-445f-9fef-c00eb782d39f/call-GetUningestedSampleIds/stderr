@@ -1,37 +1,0 @@
-+ echo 'project_id = terra-cold-pecan-4945'
-+ set +o errexit
-+ bq show --project_id terra-cold-pecan-4945 gvs_1.sample_names_to_load
-+ BQ_SHOW_RC=2
-+ set -o errexit
-+ '[' 2 -eq 0 ']'
-+ echo 'Creating the external sample name list table gvs_1.sample_names_to_load'
-+ bq --project_id=terra-cold-pecan-4945 mk gvs_1.sample_names_to_load sample_name:STRING
-+ NAMES_FILE=/cromwell_root/workflows-bucket-terra-cold-pecan-4945/GvsJointVariantCalling_job_2024-01-25T222932826Z/GvsJointVariantCalling/cae072db-c91b-49ee-a0c7-dca2ee2bf0bd/call-GvsUnified/GvsUnified/2b77704a-e1a7-4ceb-9c57-8176f385c73f/call-GvsImportGenomes/GvsImportGenomes/fad27d9f-1823-445f-9fef-c00eb782d39f/call-GetUningestedSampleIds/write_lines_23d1c49a99cd866838bb174f1dcf8531.tmp
-+ bq load --project_id=terra-cold-pecan-4945 gvs_1.sample_names_to_load /cromwell_root/workflows-bucket-terra-cold-pecan-4945/GvsJointVariantCalling_job_2024-01-25T222932826Z/GvsJointVariantCalling/cae072db-c91b-49ee-a0c7-dca2ee2bf0bd/call-GvsUnified/GvsUnified/2b77704a-e1a7-4ceb-9c57-8176f385c73f/call-GvsImportGenomes/GvsImportGenomes/fad27d9f-1823-445f-9fef-c00eb782d39f/call-GetUningestedSampleIds/write_lines_23d1c49a99cd866838bb174f1dcf8531.tmp sample_name:STRING
-Upload complete.
-Waiting on bqjob_r72acf7d6cac33e36_0000018d42d58758_1 ... (0s) Current status: RUNNING                                                                                      Waiting on bqjob_r72acf7d6cac33e36_0000018d42d58758_1 ... (1s) Current status: RUNNING                                                                                      Waiting on bqjob_r72acf7d6cac33e36_0000018d42d58758_1 ... (1s) Current status: DONE   
-+ bq --project_id=terra-cold-pecan-4945 query --format=csv --use_legacy_sql=false --label service:gvs --label team:variants --label managedby:import_genomes '
-
-  SELECT IFNULL(MIN(sample_id),0) as min, IFNULL(MAX(sample_id),0) as max FROM `gvs_1.sample_info`
-    AS samples JOIN `gvs_1.sample_names_to_load` AS temp ON samples.sample_name = temp.sample_name
-
-'
-++ cut -d, -f1
-++ tail -1 results.csv
-+ min_sample_id=1
-++ cut -d, -f2
-++ tail -1 results.csv
-+ max_sample_id=1
-+ '[' 1 -eq 0 ']'
-+ python3 -c 'from math import ceil; print(ceil(1/4000))'
-+ python3 -c 'from math import ceil; print(ceil(1/4000))'
-+ bq --project_id=terra-cold-pecan-4945 query --format=csv --use_legacy_sql=false --label service:gvs --label team:variants --label managedby:import_genomes -n 1 '
-
-  SELECT sample_id, samples.sample_name FROM `gvs_1.sample_info` AS samples JOIN `gvs_1.sample_names_to_load` AS temp ON
-    samples.sample_name = temp.sample_name WHERE
-      samples.sample_id NOT IN (SELECT sample_id FROM `gvs_1.sample_load_status` WHERE status="FINISHED") AND
-      samples.withdrawn is NULL
-
-'
-+ cut -d, -f1 sample_map.csv
-+ bq --project_id=terra-cold-pecan-4945 rm -f=true gvs_1.sample_names_to_load

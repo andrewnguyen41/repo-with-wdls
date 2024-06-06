@@ -1,55 +1,0 @@
-2024/01/25 23:30:31 Starting container setup.
-2024/01/25 23:30:33 Done container setup.
-2024/01/25 23:30:36 Starting localization.
-2024/01/25 23:30:56 Localization script execution started...
-2024/01/25 23:30:56 Localizing input gs://workflows-bucket-terra-cold-pecan-4945/GvsJointVariantCalling_job_2024-01-25T232109967Z/GvsJointVariantCalling/15c2b15c-f8d0-43ee-8366-2e5e2b6a879d/call-GvsUnified/GvsUnified/83fb134d-18dd-4fbc-b89a-cede45239dcb/call-AssignIds/GvsAssignIds/a53fb7e1-4b03-4359-9cb5-9e761fb8e160/call-AssignIds/write_lines_23d1c49a99cd866838bb174f1dcf8531.tmp -> /cromwell_root/workflows-bucket-terra-cold-pecan-4945/GvsJointVariantCalling_job_2024-01-25T232109967Z/GvsJointVariantCalling/15c2b15c-f8d0-43ee-8366-2e5e2b6a879d/call-GvsUnified/GvsUnified/83fb134d-18dd-4fbc-b89a-cede45239dcb/call-AssignIds/GvsAssignIds/a53fb7e1-4b03-4359-9cb5-9e761fb8e160/call-AssignIds/write_lines_23d1c49a99cd866838bb174f1dcf8531.tmp
-2024/01/25 23:31:03 Localizing input gs://workflows-bucket-terra-cold-pecan-4945/GvsJointVariantCalling_job_2024-01-25T232109967Z/GvsJointVariantCalling/15c2b15c-f8d0-43ee-8366-2e5e2b6a879d/call-GvsUnified/GvsUnified/83fb134d-18dd-4fbc-b89a-cede45239dcb/call-AssignIds/GvsAssignIds/a53fb7e1-4b03-4359-9cb5-9e761fb8e160/call-AssignIds/script -> /cromwell_root/script
-2024/01/25 23:31:05 Localization script execution complete.
-2024/01/25 23:31:14 Done localization.
-2024/01/25 23:31:14 Running user action: docker run -v /mnt/local-disk:/cromwell_root --entrypoint=/bin/bash gcr.io/google.com/cloudsdktool/cloud-sdk@sha256:b20cb23b303d3b3ebde15d3b8759beac6d8e9da8b49a1e189b7843130df264e4 /cromwell_root/script
-+ num_samples=1
-+ '[' 1 -eq 0 ']'
-+ echo 'project_id = terra-cold-pecan-4945'
-+ set +e
-+ bq --project_id=terra-cold-pecan-4945 show gvs_1.sample_id_assignment_lock
-+ BQ_SHOW_RC=2
-+ set -e
-+ '[' 2 -eq 0 ']'
-+ bq --project_id=terra-cold-pecan-4945 mk gvs_1.sample_id_assignment_lock sample_name:STRING
-Table 'terra-cold-pecan-4945:gvs_1.sample_id_assignment_lock' successfully created.
-+ NAMES_FILE=/cromwell_root/workflows-bucket-terra-cold-pecan-4945/GvsJointVariantCalling_job_2024-01-25T232109967Z/GvsJointVariantCalling/15c2b15c-f8d0-43ee-8366-2e5e2b6a879d/call-GvsUnified/GvsUnified/83fb134d-18dd-4fbc-b89a-cede45239dcb/call-AssignIds/GvsAssignIds/a53fb7e1-4b03-4359-9cb5-9e761fb8e160/call-AssignIds/write_lines_23d1c49a99cd866838bb174f1dcf8531.tmp
-+ bq load --project_id=terra-cold-pecan-4945 gvs_1.sample_id_assignment_lock /cromwell_root/workflows-bucket-terra-cold-pecan-4945/GvsJointVariantCalling_job_2024-01-25T232109967Z/GvsJointVariantCalling/15c2b15c-f8d0-43ee-8366-2e5e2b6a879d/call-GvsUnified/GvsUnified/83fb134d-18dd-4fbc-b89a-cede45239dcb/call-AssignIds/GvsAssignIds/a53fb7e1-4b03-4359-9cb5-9e761fb8e160/call-AssignIds/write_lines_23d1c49a99cd866838bb174f1dcf8531.tmp sample_name:STRING
-Upload complete.
-Waiting on bqjob_r1ef24bd262c8353c_0000018d42f6c1e2_1 ... (0s) Current status: RUNNING                                                                                      Waiting on bqjob_r1ef24bd262c8353c_0000018d42f6c1e2_1 ... (1s) Current status: RUNNING                                                                                      Waiting on bqjob_r1ef24bd262c8353c_0000018d42f6c1e2_1 ... (1s) Current status: DONE   
-+ bq --project_id=terra-cold-pecan-4945 query --use_legacy_sql=false --label service:gvs --label team:variants --label managedby:assign_ids 'INSERT into `gvs_1.sample_info` (sample_name, is_control) select sample_name, false from `gvs_1.sample_id_assignment_lock` m where m.sample_name not in (SELECT sample_name FROM `gvs_1.sample_info`)'
-Waiting on bqjob_r65b739ee0b40476_0000018d42f6d4c6_1 ... (0s) Current status: RUNNING                                                                                     Waiting on bqjob_r65b739ee0b40476_0000018d42f6d4c6_1 ... (1s) Current status: RUNNING                                                                                     Waiting on bqjob_r65b739ee0b40476_0000018d42f6d4c6_1 ... (1s) Current status: DONE   
-Number of affected rows: 0
-
-+ bq --project_id=terra-cold-pecan-4945 query --format=csv --use_legacy_sql=false --label service:gvs --label team:variants --label managedby:assign_ids 'SELECT IFNULL(MAX(sample_id),0) FROM `gvs_1.sample_info`'
-++ tail -1 maxid
-+ offset=1
-+ bq --project_id=terra-cold-pecan-4945 query --format=csv --use_legacy_sql=false --label service:gvs --label team:variants --label managedby:assign_ids --parameter=offset:INTEGER:1 'UPDATE `gvs_1.sample_info` m SET m.sample_id = id_assign.id FROM (SELECT sample_name, @offset + ROW_NUMBER() OVER(order by sample_name) as id FROM `gvs_1.sample_info` WHERE sample_id IS NULL) id_assign WHERE m.sample_name = id_assign.sample_name;'
-Waiting on bqjob_r1cfdf262c441a0c4_0000018d42f6ef89_1 ... (0s) Current status: RUNNING                                                                                      Waiting on bqjob_r1cfdf262c441a0c4_0000018d42f6ef89_1 ... (1s) Current status: RUNNING                                                                                      Waiting on bqjob_r1cfdf262c441a0c4_0000018d42f6ef89_1 ... (1s) Current status: DONE   
-Number of affected rows: 0
-
-+ echo entity:sample_id,gvs_id
-+ bq --project_id=terra-cold-pecan-4945 query --format=csv --use_legacy_sql=false --label service:gvs --label team:variants --label managedby:assign_ids -n 1 --parameter=offset:INTEGER:1 'SELECT sample_name, sample_id from `gvs_1.sample_info` WHERE sample_id >= @offset'
-+ sed -e s/sample_id/gvs_id/ -e s/sample_name/entity:sample_id/ -e 's/,/\t/g'
-+ cat update.tsv
-++ head -1
-++ sort -r -n
-++ cut -d, -f2
-++ cat update.tsv
-+ max_sample_id=1
-+ python3 -c 'from math import ceil; print(ceil(1/4000))'
-+ bq --project_id=terra-cold-pecan-4945 rm -f -t gvs_1.sample_id_assignment_lock
-2024/01/25 23:31:44 Starting delocalization.
-2024/01/25 23:31:44 Delocalization script execution started...
-2024/01/25 23:31:44 Delocalizing output /cromwell_root/memory_retry_rc -> gs://workflows-bucket-terra-cold-pecan-4945/GvsJointVariantCalling_job_2024-01-25T232109967Z/GvsJointVariantCalling/15c2b15c-f8d0-43ee-8366-2e5e2b6a879d/call-GvsUnified/GvsUnified/83fb134d-18dd-4fbc-b89a-cede45239dcb/call-AssignIds/GvsAssignIds/a53fb7e1-4b03-4359-9cb5-9e761fb8e160/call-AssignIds/memory_retry_rc
-2024/01/25 23:31:44 Delocalizing output /cromwell_root/rc -> gs://workflows-bucket-terra-cold-pecan-4945/GvsJointVariantCalling_job_2024-01-25T232109967Z/GvsJointVariantCalling/15c2b15c-f8d0-43ee-8366-2e5e2b6a879d/call-GvsUnified/GvsUnified/83fb134d-18dd-4fbc-b89a-cede45239dcb/call-AssignIds/GvsAssignIds/a53fb7e1-4b03-4359-9cb5-9e761fb8e160/call-AssignIds/rc
-2024/01/25 23:31:47 Delocalizing output /cromwell_root/stdout -> gs://workflows-bucket-terra-cold-pecan-4945/GvsJointVariantCalling_job_2024-01-25T232109967Z/GvsJointVariantCalling/15c2b15c-f8d0-43ee-8366-2e5e2b6a879d/call-GvsUnified/GvsUnified/83fb134d-18dd-4fbc-b89a-cede45239dcb/call-AssignIds/GvsAssignIds/a53fb7e1-4b03-4359-9cb5-9e761fb8e160/call-AssignIds/stdout
-2024/01/25 23:31:49 Delocalizing output /cromwell_root/stderr -> gs://workflows-bucket-terra-cold-pecan-4945/GvsJointVariantCalling_job_2024-01-25T232109967Z/GvsJointVariantCalling/15c2b15c-f8d0-43ee-8366-2e5e2b6a879d/call-GvsUnified/GvsUnified/83fb134d-18dd-4fbc-b89a-cede45239dcb/call-AssignIds/GvsAssignIds/a53fb7e1-4b03-4359-9cb5-9e761fb8e160/call-AssignIds/stderr
-2024/01/25 23:31:51 Delocalizing output /cromwell_root/max_table_id -> gs://workflows-bucket-terra-cold-pecan-4945/GvsJointVariantCalling_job_2024-01-25T232109967Z/GvsJointVariantCalling/15c2b15c-f8d0-43ee-8366-2e5e2b6a879d/call-GvsUnified/GvsUnified/83fb134d-18dd-4fbc-b89a-cede45239dcb/call-AssignIds/GvsAssignIds/a53fb7e1-4b03-4359-9cb5-9e761fb8e160/call-AssignIds/max_table_id
-2024/01/25 23:31:53 Delocalizing output /cromwell_root/gvs_ids.tsv -> gs://workflows-bucket-terra-cold-pecan-4945/GvsJointVariantCalling_job_2024-01-25T232109967Z/GvsJointVariantCalling/15c2b15c-f8d0-43ee-8366-2e5e2b6a879d/call-GvsUnified/GvsUnified/83fb134d-18dd-4fbc-b89a-cede45239dcb/call-AssignIds/GvsAssignIds/a53fb7e1-4b03-4359-9cb5-9e761fb8e160/call-AssignIds/gvs_ids.tsv
-2024/01/25 23:31:57 Delocalization script execution complete.
-2024/01/25 23:31:58 Done delocalization.

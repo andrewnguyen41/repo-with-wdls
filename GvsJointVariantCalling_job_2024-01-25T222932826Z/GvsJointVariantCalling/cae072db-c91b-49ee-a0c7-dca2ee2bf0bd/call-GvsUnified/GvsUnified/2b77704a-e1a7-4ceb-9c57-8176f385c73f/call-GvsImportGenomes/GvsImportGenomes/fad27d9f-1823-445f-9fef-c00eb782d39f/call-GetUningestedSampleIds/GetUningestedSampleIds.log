@@ -1,60 +1,0 @@
-2024/01/25 22:54:12 Starting container setup.
-2024/01/25 22:54:13 Done container setup.
-2024/01/25 22:54:15 Starting localization.
-2024/01/25 22:54:37 Localization script execution started...
-2024/01/25 22:54:37 Localizing input gs://workflows-bucket-terra-cold-pecan-4945/GvsJointVariantCalling_job_2024-01-25T222932826Z/GvsJointVariantCalling/cae072db-c91b-49ee-a0c7-dca2ee2bf0bd/call-GvsUnified/GvsUnified/2b77704a-e1a7-4ceb-9c57-8176f385c73f/call-GvsImportGenomes/GvsImportGenomes/fad27d9f-1823-445f-9fef-c00eb782d39f/call-GetUningestedSampleIds/script -> /cromwell_root/script
-2024/01/25 22:54:43 Localizing input gs://workflows-bucket-terra-cold-pecan-4945/GvsJointVariantCalling_job_2024-01-25T222932826Z/GvsJointVariantCalling/cae072db-c91b-49ee-a0c7-dca2ee2bf0bd/call-GvsUnified/GvsUnified/2b77704a-e1a7-4ceb-9c57-8176f385c73f/call-GvsImportGenomes/GvsImportGenomes/fad27d9f-1823-445f-9fef-c00eb782d39f/call-GetUningestedSampleIds/write_lines_23d1c49a99cd866838bb174f1dcf8531.tmp -> /cromwell_root/workflows-bucket-terra-cold-pecan-4945/GvsJointVariantCalling_job_2024-01-25T222932826Z/GvsJointVariantCalling/cae072db-c91b-49ee-a0c7-dca2ee2bf0bd/call-GvsUnified/GvsUnified/2b77704a-e1a7-4ceb-9c57-8176f385c73f/call-GvsImportGenomes/GvsImportGenomes/fad27d9f-1823-445f-9fef-c00eb782d39f/call-GetUningestedSampleIds/write_lines_23d1c49a99cd866838bb174f1dcf8531.tmp
-2024/01/25 22:54:45 Localization script execution complete.
-2024/01/25 22:54:53 Done localization.
-2024/01/25 22:54:53 Running user action: docker run -v /mnt/local-disk:/cromwell_root --entrypoint=/bin/bash gcr.io/google.com/cloudsdktool/cloud-sdk@sha256:b20cb23b303d3b3ebde15d3b8759beac6d8e9da8b49a1e189b7843130df264e4 /cromwell_root/script
-+ echo 'project_id = terra-cold-pecan-4945'
-+ set +o errexit
-+ bq show --project_id terra-cold-pecan-4945 gvs_1.sample_names_to_load
-+ BQ_SHOW_RC=2
-+ set -o errexit
-+ '[' 2 -eq 0 ']'
-+ echo 'Creating the external sample name list table gvs_1.sample_names_to_load'
-+ bq --project_id=terra-cold-pecan-4945 mk gvs_1.sample_names_to_load sample_name:STRING
-Creating the external sample name list table gvs_1.sample_names_to_load
-Table 'terra-cold-pecan-4945:gvs_1.sample_names_to_load' successfully created.
-+ NAMES_FILE=/cromwell_root/workflows-bucket-terra-cold-pecan-4945/GvsJointVariantCalling_job_2024-01-25T222932826Z/GvsJointVariantCalling/cae072db-c91b-49ee-a0c7-dca2ee2bf0bd/call-GvsUnified/GvsUnified/2b77704a-e1a7-4ceb-9c57-8176f385c73f/call-GvsImportGenomes/GvsImportGenomes/fad27d9f-1823-445f-9fef-c00eb782d39f/call-GetUningestedSampleIds/write_lines_23d1c49a99cd866838bb174f1dcf8531.tmp
-+ bq load --project_id=terra-cold-pecan-4945 gvs_1.sample_names_to_load /cromwell_root/workflows-bucket-terra-cold-pecan-4945/GvsJointVariantCalling_job_2024-01-25T222932826Z/GvsJointVariantCalling/cae072db-c91b-49ee-a0c7-dca2ee2bf0bd/call-GvsUnified/GvsUnified/2b77704a-e1a7-4ceb-9c57-8176f385c73f/call-GvsImportGenomes/GvsImportGenomes/fad27d9f-1823-445f-9fef-c00eb782d39f/call-GetUningestedSampleIds/write_lines_23d1c49a99cd866838bb174f1dcf8531.tmp sample_name:STRING
-Upload complete.
-Waiting on bqjob_r72acf7d6cac33e36_0000018d42d58758_1 ... (0s) Current status: RUNNING                                                                                      Waiting on bqjob_r72acf7d6cac33e36_0000018d42d58758_1 ... (1s) Current status: RUNNING                                                                                      Waiting on bqjob_r72acf7d6cac33e36_0000018d42d58758_1 ... (1s) Current status: DONE   
-+ bq --project_id=terra-cold-pecan-4945 query --format=csv --use_legacy_sql=false --label service:gvs --label team:variants --label managedby:import_genomes '
-
-  SELECT IFNULL(MIN(sample_id),0) as min, IFNULL(MAX(sample_id),0) as max FROM `gvs_1.sample_info`
-    AS samples JOIN `gvs_1.sample_names_to_load` AS temp ON samples.sample_name = temp.sample_name
-
-'
-++ cut -d, -f1
-++ tail -1 results.csv
-+ min_sample_id=1
-++ cut -d, -f2
-++ tail -1 results.csv
-+ max_sample_id=1
-+ '[' 1 -eq 0 ']'
-+ python3 -c 'from math import ceil; print(ceil(1/4000))'
-+ python3 -c 'from math import ceil; print(ceil(1/4000))'
-+ bq --project_id=terra-cold-pecan-4945 query --format=csv --use_legacy_sql=false --label service:gvs --label team:variants --label managedby:import_genomes -n 1 '
-
-  SELECT sample_id, samples.sample_name FROM `gvs_1.sample_info` AS samples JOIN `gvs_1.sample_names_to_load` AS temp ON
-    samples.sample_name = temp.sample_name WHERE
-      samples.sample_id NOT IN (SELECT sample_id FROM `gvs_1.sample_load_status` WHERE status="FINISHED") AND
-      samples.withdrawn is NULL
-
-'
-+ cut -d, -f1 sample_map.csv
-+ bq --project_id=terra-cold-pecan-4945 rm -f=true gvs_1.sample_names_to_load
-2024/01/25 22:55:17 Starting delocalization.
-2024/01/25 22:55:17 Delocalization script execution started...
-2024/01/25 22:55:17 Delocalizing output /cromwell_root/memory_retry_rc -> gs://workflows-bucket-terra-cold-pecan-4945/GvsJointVariantCalling_job_2024-01-25T222932826Z/GvsJointVariantCalling/cae072db-c91b-49ee-a0c7-dca2ee2bf0bd/call-GvsUnified/GvsUnified/2b77704a-e1a7-4ceb-9c57-8176f385c73f/call-GvsImportGenomes/GvsImportGenomes/fad27d9f-1823-445f-9fef-c00eb782d39f/call-GetUningestedSampleIds/memory_retry_rc
-2024/01/25 22:55:17 Delocalizing output /cromwell_root/rc -> gs://workflows-bucket-terra-cold-pecan-4945/GvsJointVariantCalling_job_2024-01-25T222932826Z/GvsJointVariantCalling/cae072db-c91b-49ee-a0c7-dca2ee2bf0bd/call-GvsUnified/GvsUnified/2b77704a-e1a7-4ceb-9c57-8176f385c73f/call-GvsImportGenomes/GvsImportGenomes/fad27d9f-1823-445f-9fef-c00eb782d39f/call-GetUningestedSampleIds/rc
-2024/01/25 22:55:20 Delocalizing output /cromwell_root/stdout -> gs://workflows-bucket-terra-cold-pecan-4945/GvsJointVariantCalling_job_2024-01-25T222932826Z/GvsJointVariantCalling/cae072db-c91b-49ee-a0c7-dca2ee2bf0bd/call-GvsUnified/GvsUnified/2b77704a-e1a7-4ceb-9c57-8176f385c73f/call-GvsImportGenomes/GvsImportGenomes/fad27d9f-1823-445f-9fef-c00eb782d39f/call-GetUningestedSampleIds/stdout
-2024/01/25 22:55:22 Delocalizing output /cromwell_root/stderr -> gs://workflows-bucket-terra-cold-pecan-4945/GvsJointVariantCalling_job_2024-01-25T222932826Z/GvsJointVariantCalling/cae072db-c91b-49ee-a0c7-dca2ee2bf0bd/call-GvsUnified/GvsUnified/2b77704a-e1a7-4ceb-9c57-8176f385c73f/call-GvsImportGenomes/GvsImportGenomes/fad27d9f-1823-445f-9fef-c00eb782d39f/call-GetUningestedSampleIds/stderr
-2024/01/25 22:55:23 Delocalizing output /cromwell_root/max_sample_id -> gs://workflows-bucket-terra-cold-pecan-4945/GvsJointVariantCalling_job_2024-01-25T222932826Z/GvsJointVariantCalling/cae072db-c91b-49ee-a0c7-dca2ee2bf0bd/call-GvsUnified/GvsUnified/2b77704a-e1a7-4ceb-9c57-8176f385c73f/call-GvsImportGenomes/GvsImportGenomes/fad27d9f-1823-445f-9fef-c00eb782d39f/call-GetUningestedSampleIds/max_sample_id
-2024/01/25 22:55:25 Delocalizing output /cromwell_root/sample_map.csv -> gs://workflows-bucket-terra-cold-pecan-4945/GvsJointVariantCalling_job_2024-01-25T222932826Z/GvsJointVariantCalling/cae072db-c91b-49ee-a0c7-dca2ee2bf0bd/call-GvsUnified/GvsUnified/2b77704a-e1a7-4ceb-9c57-8176f385c73f/call-GvsImportGenomes/GvsImportGenomes/fad27d9f-1823-445f-9fef-c00eb782d39f/call-GetUningestedSampleIds/sample_map.csv
-2024/01/25 22:55:27 Delocalizing output /cromwell_root/gvs_ids.csv -> gs://workflows-bucket-terra-cold-pecan-4945/GvsJointVariantCalling_job_2024-01-25T222932826Z/GvsJointVariantCalling/cae072db-c91b-49ee-a0c7-dca2ee2bf0bd/call-GvsUnified/GvsUnified/2b77704a-e1a7-4ceb-9c57-8176f385c73f/call-GvsImportGenomes/GvsImportGenomes/fad27d9f-1823-445f-9fef-c00eb782d39f/call-GetUningestedSampleIds/gvs_ids.csv
-2024/01/25 22:55:28 Delocalizing output /cromwell_root/min_sample_id -> gs://workflows-bucket-terra-cold-pecan-4945/GvsJointVariantCalling_job_2024-01-25T222932826Z/GvsJointVariantCalling/cae072db-c91b-49ee-a0c7-dca2ee2bf0bd/call-GvsUnified/GvsUnified/2b77704a-e1a7-4ceb-9c57-8176f385c73f/call-GvsImportGenomes/GvsImportGenomes/fad27d9f-1823-445f-9fef-c00eb782d39f/call-GetUningestedSampleIds/min_sample_id
-2024/01/25 22:55:30 Delocalization script execution complete.
-2024/01/25 22:55:31 Done delocalization.

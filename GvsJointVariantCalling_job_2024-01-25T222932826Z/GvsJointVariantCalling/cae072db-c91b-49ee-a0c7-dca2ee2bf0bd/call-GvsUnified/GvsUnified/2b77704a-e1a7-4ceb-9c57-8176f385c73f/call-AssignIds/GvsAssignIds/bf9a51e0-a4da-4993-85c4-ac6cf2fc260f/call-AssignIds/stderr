@@ -1,31 +1,0 @@
-+ num_samples=1
-+ '[' 1 -eq 0 ']'
-+ echo 'project_id = terra-cold-pecan-4945'
-+ set +e
-+ bq --project_id=terra-cold-pecan-4945 show gvs_1.sample_id_assignment_lock
-+ BQ_SHOW_RC=2
-+ set -e
-+ '[' 2 -eq 0 ']'
-+ bq --project_id=terra-cold-pecan-4945 mk gvs_1.sample_id_assignment_lock sample_name:STRING
-+ NAMES_FILE=/cromwell_root/workflows-bucket-terra-cold-pecan-4945/GvsJointVariantCalling_job_2024-01-25T222932826Z/GvsJointVariantCalling/cae072db-c91b-49ee-a0c7-dca2ee2bf0bd/call-GvsUnified/GvsUnified/2b77704a-e1a7-4ceb-9c57-8176f385c73f/call-AssignIds/GvsAssignIds/bf9a51e0-a4da-4993-85c4-ac6cf2fc260f/call-AssignIds/write_lines_23d1c49a99cd866838bb174f1dcf8531.tmp
-+ bq load --project_id=terra-cold-pecan-4945 gvs_1.sample_id_assignment_lock /cromwell_root/workflows-bucket-terra-cold-pecan-4945/GvsJointVariantCalling_job_2024-01-25T222932826Z/GvsJointVariantCalling/cae072db-c91b-49ee-a0c7-dca2ee2bf0bd/call-GvsUnified/GvsUnified/2b77704a-e1a7-4ceb-9c57-8176f385c73f/call-AssignIds/GvsAssignIds/bf9a51e0-a4da-4993-85c4-ac6cf2fc260f/call-AssignIds/write_lines_23d1c49a99cd866838bb174f1dcf8531.tmp sample_name:STRING
-Upload complete.
-Waiting on bqjob_r788bba9157bc792f_0000018d42cce266_1 ... (0s) Current status: RUNNING                                                                                      Waiting on bqjob_r788bba9157bc792f_0000018d42cce266_1 ... (1s) Current status: RUNNING                                                                                      Waiting on bqjob_r788bba9157bc792f_0000018d42cce266_1 ... (1s) Current status: DONE   
-+ bq --project_id=terra-cold-pecan-4945 query --use_legacy_sql=false --label service:gvs --label team:variants --label managedby:assign_ids 'INSERT into `gvs_1.sample_info` (sample_name, is_control) select sample_name, false from `gvs_1.sample_id_assignment_lock` m where m.sample_name not in (SELECT sample_name FROM `gvs_1.sample_info`)'
-Waiting on bqjob_r32aa16ca785cc031_0000018d42ccf55c_1 ... (0s) Current status: RUNNING                                                                                      Waiting on bqjob_r32aa16ca785cc031_0000018d42ccf55c_1 ... (1s) Current status: RUNNING                                                                                      Waiting on bqjob_r32aa16ca785cc031_0000018d42ccf55c_1 ... (1s) Current status: DONE   
-+ bq --project_id=terra-cold-pecan-4945 query --format=csv --use_legacy_sql=false --label service:gvs --label team:variants --label managedby:assign_ids 'SELECT IFNULL(MAX(sample_id),0) FROM `gvs_1.sample_info`'
-++ tail -1 maxid
-+ offset=0
-+ bq --project_id=terra-cold-pecan-4945 query --format=csv --use_legacy_sql=false --label service:gvs --label team:variants --label managedby:assign_ids --parameter=offset:INTEGER:0 'UPDATE `gvs_1.sample_info` m SET m.sample_id = id_assign.id FROM (SELECT sample_name, @offset + ROW_NUMBER() OVER(order by sample_name) as id FROM `gvs_1.sample_info` WHERE sample_id IS NULL) id_assign WHERE m.sample_name = id_assign.sample_name;'
-Waiting on bqjob_r45ef03d5822aca6b_0000018d42cd0f7b_1 ... (0s) Current status: RUNNING                                                                                      Waiting on bqjob_r45ef03d5822aca6b_0000018d42cd0f7b_1 ... (1s) Current status: RUNNING                                                                                      Waiting on bqjob_r45ef03d5822aca6b_0000018d42cd0f7b_1 ... (1s) Current status: DONE   
-+ echo entity:sample_id,gvs_id
-+ bq --project_id=terra-cold-pecan-4945 query --format=csv --use_legacy_sql=false --label service:gvs --label team:variants --label managedby:assign_ids -n 1 --parameter=offset:INTEGER:0 'SELECT sample_name, sample_id from `gvs_1.sample_info` WHERE sample_id >= @offset'
-+ sed -e s/sample_id/gvs_id/ -e s/sample_name/entity:sample_id/ -e 's/,/\t/g'
-+ cat update.tsv
-++ head -1++ 
-sort -r -n
-++ cut -d, -f2
-++ cat update.tsv
-+ max_sample_id=1
-+ python3 -c 'from math import ceil; print(ceil(1/4000))'
-+ bq --project_id=terra-cold-pecan-4945 rm -f -t gvs_1.sample_id_assignment_lock
